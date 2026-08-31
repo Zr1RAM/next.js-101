@@ -1,18 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
-interface LoginFormProps {
-  onLoginSuccess: () => void;
-}
-
-export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
+export default function LoginForm() {
   const defaultUsername = "admin@example.com";
   const defaultPassword = "password123";
   const [email, setEmail] = useState(defaultUsername);
   const [password, setPassword] = useState(defaultPassword);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +38,12 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
       await new Promise((resolve) => setTimeout(resolve, 800));
 
       if (apiSuccess || (email === defaultUsername && password === defaultPassword)) {
-        onLoginSuccess();
+        // Set the auth token cookie
+        document.cookie = "auth_token=true; path=/; max-age=86400; SameSite=Strict";
+        
+        // Redirect to home and refresh layout to show Nav
+        router.push("/");
+        router.refresh();
       } else {
         setError(`Invalid credentials.`);
       }

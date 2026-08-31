@@ -1,21 +1,9 @@
-"use client";
-
-import { useState } from "react";
 import Image from "next/image";
-import Nav from "@/app/_components/Nav";
-import LoginForm from "@/app/_components/LoginForm";
 
 export default function Home() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  if (!isLoggedIn) {
-    return <LoginForm onLoginSuccess={() => setIsLoggedIn(true)} />;
-  }
-
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black min-h-screen">
-      <Nav setIsLoggedIn={setIsLoggedIn} />
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
+    <div className="flex flex-col flex-1 items-center justify-center min-h-screen w-full">
+      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 sm:items-start">
         <Image
           className="dark:invert h-5 w-[100px]"
           src="/next.svg"
