@@ -29,8 +29,10 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-zinc-50 dark:bg-black">
+        {/* <header>My Site Header</header> */}
         {isLoggedIn && <Nav />}
         {children}
+        {/* <footer>My Site Footer</footer> */}
       </body>
     </html>
   );
