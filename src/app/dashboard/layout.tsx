@@ -52,6 +52,26 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Menu className="w-5 h-5" />
           </button>
         </div>
+    <div className="flex min-h-screen bg-zinc-50 dark:bg-black">
+      {/* Collapsible Sidebar */}
+      <aside
+        className={`flex flex-col border-r border-zinc-200 dark:border-zinc-800 bg-zinc-950 text-white transition-all duration-300 ease-in-out ${
+          isExpanded ? "w-64" : "w-20"
+        }`}
+      >
+        {/* Toggle Button Header */}
+        <div className="flex items-center h-16 px-4 border-b border-zinc-800">
+          {isExpanded && <span className="font-bold text-lg tracking-tight">Dashboard</span>}
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className={`p-2 rounded-lg hover:bg-white/10 transition-colors ${
+              isExpanded ? "ml-auto" : "mx-auto"
+            }`}
+            aria-label="Toggle Sidebar"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+        </div>
 
         {/* Navigation Links */}
         <nav className="flex flex-col gap-2 p-3 flex-1">
