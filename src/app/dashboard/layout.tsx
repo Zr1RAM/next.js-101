@@ -1,6 +1,6 @@
 // app/dashboard/layout.tsx
 import Sidebar, { SidebarItem } from "@/app/dashboard/_components/Sidebar";
-import { Home, Settings, BarChart, Users, Server, Computer, RotateCcwClock } from "lucide-react";
+import { Home, Settings, BarChart, Users, Server, Computer, RotateCcwClock, Notebook } from "lucide-react";
 
 const sidebarItems: SidebarItem[] = [
   { href: "/dashboard", label: "Overview", icon: <Home /> },
@@ -8,6 +8,12 @@ const sidebarItems: SidebarItem[] = [
   { href: "/dashboard/server-component", label: "Server Component E.g.", icon: <Server /> },
   { href: "/dashboard/client-component", label: "Client Component E.g.", icon: <Computer /> },
   { href: "/dashboard/suspense-example", label: "Suspense Example", icon: <RotateCcwClock /> },
+  { type: "separator" },
+  { type: "separator", isCollapsible: true, label: "SSG Examples" },
+  { href: "/dashboard/static-example-1", label: "Static Example 1", icon: <Notebook /> },
+  { href: "/dashboard/static-example-2", label: "Static Example 2", icon: <Notebook /> },
+  { href: "/dashboard/static-example-3", label: "Static Example 3", icon: <Notebook /> },
+  { href: "/dashboard/static-example-4", label: "Static Example 4", icon: <Notebook /> },
   { type: "separator" },
   { href: "/dashboard/analytics", label: "Analytics", icon: <BarChart /> },
   { href: "/dashboard/users", label: "Users", icon: <Users /> },

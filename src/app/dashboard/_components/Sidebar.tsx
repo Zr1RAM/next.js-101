@@ -3,15 +3,28 @@
 import React, { useState, ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu } from "lucide-react";
+import { Menu, ChevronDown } from "lucide-react";
 
 export type SidebarItem = 
   | { href: string; label: string; icon: ReactNode; type?: never }
-  | { type: "separator"; href?: never; label?: never; icon?: never };
+  | { type: "separator"; href?: never; label?: string; icon?: never; isCollapsible?: boolean };
 
 export default function Sidebar({ items }: { items: SidebarItem[] }) {
   const [isExpanded, setIsExpanded] = useState(true);
   const pathname = usePathname();
+  
+  // Track collapse state for any collapsible separators by their index
+  const [collapsedSections, setCollapsedSections] = useState<Record<number, boolean>>({});
+
+  const toggleSection = (index: number) => {
+    setCollapsedSections((prev) => ({
+      ...prev,
+      [index]: !prev[index],
+    }));
+  };
+
+  // Determine which items are hidden based on preceding collapsible separators
+  let activeCollapsibleIndex: number | null = null;
 
   return (
     <aside
@@ -34,11 +47,46 @@ export default function Sidebar({ items }: { items: SidebarItem[] }) {
       </div>
 
       {/* Navigation Links */}
-      <nav className="flex flex-col gap-2 p-3 flex-1">
+      <nav className="flex flex-col gap-2 p-3 flex-1 overflow-y-auto">
         {items.map((item, index) => {
           if ("type" in item && item.type === "separator") {
-            return <hr key={index} className="my-2 border-zinc-800" />;
+            const isCollapsible = item.isCollapsible ?? false;
+            if (isCollapsible) {
+              activeCollapsibleIndex = index;
+            } else {
+              activeCollapsibleIndex = null;
+            }
+
+            const isCollapsed = collapsedSections[index] ?? false;
+
+            return (
+              <div key={index} className="my-2">
+                {isCollapsible ? (
+                  <button
+                    onClick={() => toggleSection(index)}
+                    className="w-full flex items-center justify-between text-zinc-500 hover:text-zinc-300 text-xs font-semibold uppercase tracking-wider py-1 px-1 transition-colors"
+                  >
+                    {isExpanded && <span>{item.label}</span>}
+                    <ChevronDown
+                      className={`w-4 h-4 transition-transform duration-200 ${
+                        isCollapsed ? "-rotate-90" : ""
+                      } ${!isExpanded ? "mx-auto" : ""}`}
+                    />
+                  </button>
+                ) : (
+                  <hr className="border-zinc-800" />
+                )}
+              </div>
+            );
           }
+
+          // Check if this item belongs to a collapsed section
+          const isHidden =
+            activeCollapsibleIndex !== null &&
+            (collapsedSections[activeCollapsibleIndex] ?? false);
+
+          if (isHidden) return null;
+
           const isActive = pathname === item.href;
 
           return (
