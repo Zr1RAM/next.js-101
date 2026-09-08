@@ -7,6 +7,10 @@ const ServerComponentExample = async () => {
         res = await fetch("https://dogapi.dog/api/v2/breeds", {
             next: {
                 revalidate: 300
+                /** 
+                 * by having it revalidate every 5 minutes.
+                 *  this component changed from being Server Side Rendering(SSR) to Incremental Static Regeneration(ISR)
+                */
             }
         });
     }
@@ -20,7 +24,7 @@ const ServerComponentExample = async () => {
     }
     // Next JS cache options
     // cache: "force-cache" - Next JS will cache data for 5 minutes by default. This is called static caching.
-    // cache: "no-store" - Next JS will not cache data. This is called dynamic caching.
+    // cache: "no-store" - Next JS will not cache data. This is called dynamic caching. Also making this True SSR
     // cache: "no-cache" - Next JS will not cache data. This is called dynamic caching.
     // const res2 = await fetch("https://dogapi.dog/api/v2/breeds", { cache: "force-cache" });
     // const res3 = await fetch("https://dogapi.dog/api/v2/breeds", { next: { revalidate: 60 } });
