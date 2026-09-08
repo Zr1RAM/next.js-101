@@ -1,8 +1,11 @@
 "use client"
-import { useState } from "react"
+import { useState, Suspense } from "react"
+import { CatImage } from "./(Animals)/CatImage";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import LoadingSpinner from "./(Suspense)/SuspenseLoader";
 
-const ClientComponentExample = () => {
-  const [count, setCount] = useState(0)
+export function Counter() {
+  const [count, setCount] = useState(0);
   return (
     <div>
       <p>You clicked {count} times</p>
@@ -13,6 +16,22 @@ const ClientComponentExample = () => {
         Click me
       </button>
     </div>
+  );
+}
+
+const ClientComponentExample = () => {
+  // Create a local query client instance for this subtree
+  const [queryClient] = useState(() => new QueryClient());
+  return (
+    <>
+      <Counter />
+      <br />
+      <QueryClientProvider client={queryClient}>
+        <Suspense fallback={<LoadingSpinner />}>
+          <CatImage />
+        </Suspense>
+      </QueryClientProvider>
+    </>
   )
 }
 
