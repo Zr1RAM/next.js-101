@@ -1,4 +1,4 @@
-import DogList from "./(Dog)/DogList";
+import DogList from "./(Animals)/DogList";
 
 const ServerComponentExample = async () => {
     let res: Response;
