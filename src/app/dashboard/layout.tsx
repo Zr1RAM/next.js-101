@@ -1,12 +1,13 @@
 // app/dashboard/layout.tsx
 import Sidebar, { SidebarItem } from "@/app/dashboard/_components/Sidebar";
-import { Home, Settings, BarChart, Users, Server, Computer } from "lucide-react";
+import { Home, Settings, BarChart, Users, Server, Computer, RotateCcwClock } from "lucide-react";
 
 const sidebarItems: SidebarItem[] = [
   { href: "/dashboard", label: "Overview", icon: <Home /> },
   { type: "separator" },
   { href: "/dashboard/server-component", label: "Server Component E.g.", icon: <Server /> },
   { href: "/dashboard/client-component", label: "Client Component E.g.", icon: <Computer /> },
+  { href: "/dashboard/suspense-example", label: "Suspense Example", icon: <RotateCcwClock /> },
   { type: "separator" },
   { href: "/dashboard/analytics", label: "Analytics", icon: <BarChart /> },
   { href: "/dashboard/users", label: "Users", icon: <Users /> },
