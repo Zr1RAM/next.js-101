@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { loginUser } from "@/actions/auth";
 
 export default function LoginForm() {
-  const defaultUsername = "admin@example.com";
-  const defaultPassword = "password123";
-  const [email, setEmail] = useState(defaultUsername);
-  const [password, setPassword] = useState(defaultPassword);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -18,36 +18,15 @@ export default function LoginForm() {
     setError("");
 
     try {
-      const API_URL = "https://your-api-endpoint.com/api/login";
-      let apiSuccess = false;
+      const result = await loginUser({ email, password });
 
-      try {
-        const response = await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        });
-
-        if (response.ok) {
-          apiSuccess = true;
-        }
-      } catch (err) {
-        console.warn("API URL is a placeholder. Falling back to local credential check.");
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, 800));
-
-      if (apiSuccess || (email === defaultUsername && password === defaultPassword)) {
-        // Set the auth token cookie
-        document.cookie = "auth_token=true; path=/; max-age=86400; SameSite=Strict";
-        
-        // Redirect to home and refresh layout to show Nav
+      if (result.success) {
         router.push("/");
         router.refresh();
       } else {
-        setError(`Invalid credentials.`);
+        setError(result.error || "Invalid credentials.");
       }
-    } catch (err) {
+    } catch {
       setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
@@ -82,6 +61,7 @@ export default function LoginForm() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            placeholder="you@example.com"
             className="rounded-lg border border-zinc-300 px-3 py-2 text-sm bg-transparent text-black dark:border-zinc-700 dark:text-white"
           />
         </div>
@@ -95,6 +75,7 @@ export default function LoginForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            placeholder="••••••••"
             className="rounded-lg border border-zinc-300 px-3 py-2 text-sm bg-transparent text-black dark:border-zinc-700 dark:text-white"
           />
         </div>
@@ -106,6 +87,19 @@ export default function LoginForm() {
         >
           {loading ? "Signing in..." : "Login"}
         </button>
+
+        <div className="flex items-center my-1">
+          <div className="flex-1 border-t border-zinc-200 dark:border-zinc-800"></div>
+          <span className="px-3 text-xs text-zinc-400">or</span>
+          <div className="flex-1 border-t border-zinc-200 dark:border-zinc-800"></div>
+        </div>
+
+        <Link
+          href="/register"
+          className="flex h-10 w-full items-center justify-center rounded-lg border border-zinc-300 dark:border-zinc-700 text-sm font-medium text-zinc-900 dark:text-zinc-100 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+        >
+          Register
+        </Link>
       </form>
     </div>
   );
