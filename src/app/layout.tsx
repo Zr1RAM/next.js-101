@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { cookies } from "next/headers";
+import { getCurrentUser } from "@/lib/session";
 import Nav from "@/app/_components/Nav";
 import "./globals.css";
 
@@ -21,7 +22,9 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const cookieStore = await cookies();
-  const isLoggedIn = cookieStore.has("auth_token");
+  const hasAuthToken = cookieStore.has("auth_token");
+  const currentUser = await getCurrentUser();
+  const isLoggedIn = hasAuthToken || !!currentUser;
 
   return (
     <html
@@ -30,7 +33,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col bg-zinc-50 dark:bg-black">
         {/* <header>My Site Header</header> */}
-        {isLoggedIn && <Nav />}
+        {isLoggedIn && <Nav userId={currentUser?.id} />}
         {children}
         {/* <footer>My Site Footer</footer> */}
       </body>
