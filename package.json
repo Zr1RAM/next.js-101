@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:status": "node scripts/dual-migrate.mjs status",
+    "db:pull": "prisma db pull && prisma generate",
+    "db:migrate:dual": "node scripts/dual-migrate.mjs apply"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
