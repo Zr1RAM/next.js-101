@@ -31,6 +31,7 @@ export default function RegisterForm() {
     setLoading(true);
 
     try {
+      // Calling Server Action from Event Handlers this could directly be called on onClick though that would be ugly
       const result = await registerUser({
         firstName,
         lastName,
