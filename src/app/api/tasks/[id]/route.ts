@@ -1,92 +1,84 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/session";
+import { getCurrentUser } from "@/lib/auth/session";
 import {
   getTaskDetails,
   updateUserTask,
   removeUserTask,
-  ValidationError,
-  NotFoundError,
-  ForbiddenError,
 } from "@/services/taskService";
+import {
+  withErrorHandler,
+  BadRequestError,
+  UnauthorizedError,
+} from "@/lib/error-handling/errors";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
 }
 
 /**
- * Helper to map service errors to HTTP responses.
- */
-function handleServiceError(error: unknown) {
-  if (error instanceof ValidationError) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
-  }
-  if (error instanceof NotFoundError) {
-    return NextResponse.json({ error: error.message }, { status: 404 });
-  }
-  if (error instanceof ForbiddenError) {
-    return NextResponse.json({ error: error.message }, { status: 403 });
-  }
-  const message = error instanceof Error ? error.message : "Internal server error";
-  return NextResponse.json({ error: message }, { status: 500 });
-}
-
-/**
  * GET /api/tasks/[id]
  * Fetch a single task by ID for the authenticated user.
  */
-export async function GET(request: Request, context: RouteContext) {
-  try {
+export const GET = withErrorHandler(
+  async (request: Request, context: RouteContext) => {
     const user = await getCurrentUser();
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      throw new UnauthorizedError("Unauthorized");
     }
 
     const { id } = await context.params;
-    const task = await getTaskDetails(id, user.id);
+    if (!id) {
+      throw new BadRequestError("Missing ID");
+    }
 
-    return NextResponse.json(task, { status: 200 });
-  } catch (error: unknown) {
-    return handleServiceError(error);
+    const task = await getTaskDetails(id, user.id);
+    return NextResponse.json({ success: true, data: task }, { status: 200 });
   }
-}
+);
 
 /**
  * PATCH /api/tasks/[id]
  * Update an existing task's title, description, status, or due date/time.
  */
-export async function PATCH(request: Request, context: RouteContext) {
-  try {
+export const PATCH = withErrorHandler(
+  async (request: Request, context: RouteContext) => {
     const user = await getCurrentUser();
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      throw new UnauthorizedError("Unauthorized");
     }
 
     const { id } = await context.params;
+    if (!id) {
+      throw new BadRequestError("Missing ID");
+    }
+
     const body = await request.json();
     const updatedTask = await updateUserTask(id, user.id, body);
 
-    return NextResponse.json(updatedTask, { status: 200 });
-  } catch (error: unknown) {
-    return handleServiceError(error);
+    return NextResponse.json(
+      { success: true, data: updatedTask },
+      { status: 200 }
+    );
   }
-}
+);
 
 /**
  * DELETE /api/tasks/[id]
  * Delete a specific task owned by the authenticated user.
  */
-export async function DELETE(request: Request, context: RouteContext) {
-  try {
+export const DELETE = withErrorHandler(
+  async (request: Request, context: RouteContext) => {
     const user = await getCurrentUser();
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      throw new UnauthorizedError("Unauthorized");
     }
 
     const { id } = await context.params;
-    await removeUserTask(id, user.id);
+    if (!id) {
+      throw new BadRequestError("Missing ID");
+    }
 
-    return NextResponse.json({ success: true, id }, { status: 200 });
-  } catch (error: unknown) {
-    return handleServiceError(error);
+    await removeUserTask(id, user.id);
+    return NextResponse.json({ success: true, data: { id } }, { status: 200 });
   }
-}
+);

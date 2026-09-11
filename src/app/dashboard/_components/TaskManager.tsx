@@ -30,10 +30,14 @@ export const TaskManager: React.FC = () => {
       const res = await fetch("/api/tasks");
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP error ${res.status}`);
+        const message =
+          errorData.error?.message ||
+          (typeof errorData.error === "string" ? errorData.error : `HTTP error ${res.status}`);
+        throw new Error(message);
       }
-      const data = await res.json();
-      setTasks(data);
+      const json = await res.json();
+      const tasksData = json?.data ?? json;
+      setTasks(Array.isArray(tasksData) ? tasksData : []);
       setError(null);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to load tasks");
@@ -49,11 +53,15 @@ export const TaskManager: React.FC = () => {
         const res = await fetch("/api/tasks");
         if (!res.ok) {
           const errorData = await res.json().catch(() => ({}));
-          throw new Error(errorData.error || `HTTP error ${res.status}`);
+          const message =
+            errorData.error?.message ||
+            (typeof errorData.error === "string" ? errorData.error : `HTTP error ${res.status}`);
+          throw new Error(message);
         }
-        const data = await res.json();
+        const json = await res.json();
+        const tasksData = json?.data ?? json;
         if (!ignore) {
-          setTasks(data);
+          setTasks(Array.isArray(tasksData) ? tasksData : []);
           setError(null);
         }
       } catch (err: unknown) {
@@ -115,9 +123,13 @@ export const TaskManager: React.FC = () => {
       });
       if (!res.ok) {
         const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.error || "Failed to update task");
+        const message =
+          errJson.error?.message ||
+          (typeof errJson.error === "string" ? errJson.error : "Failed to update task");
+        throw new Error(message);
       }
-      const updated = await res.json();
+      const resJson = await res.json();
+      const updated = resJson?.data ?? resJson;
       setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
     } else {
       // CREATE: POST /api/tasks
@@ -128,9 +140,13 @@ export const TaskManager: React.FC = () => {
       });
       if (!res.ok) {
         const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.error || "Failed to create task");
+        const message =
+          errJson.error?.message ||
+          (typeof errJson.error === "string" ? errJson.error : "Failed to create task");
+        throw new Error(message);
       }
-      const created = await res.json();
+      const resJson = await res.json();
+      const created = resJson?.data ?? resJson;
       setTasks((prev) => [created, ...prev]);
     }
   };
