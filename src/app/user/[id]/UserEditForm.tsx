@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useOptimistic, useTransition } from "react";
 import { updateUserProfile } from "@/actions/user";
 
 interface UserData {
@@ -13,34 +13,55 @@ interface UserData {
 }
 
 export default function UserEditForm({ user }: { user: UserData }) {
+  const [currentUser, setCurrentUser] = useState(user);
   const [firstName, setFirstName] = useState(user.firstName);
   const [lastName, setLastName] = useState(user.lastName);
   const [phone, setPhone] = useState(user.phone || "");
-  const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  // Optimistic user state via React 19 useOptimistic
+  const [optimisticUser, setOptimisticUser] = useOptimistic(
+    currentUser,
+    (current, update: Partial<UserData>) => ({
+      ...current,
+      ...update,
+    })
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setMessage(null);
 
-    try {
-      const result = await updateUserProfile(user.id, {
-        firstName,
-        lastName,
-        phone,
+    startTransition(async () => {
+      // 1. Instantly reflect the updated details optimistically
+      setOptimisticUser({
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        phone: phone.trim() || null,
       });
 
-      if (result.success) {
-        setMessage({ type: "success", text: "Profile updated successfully!" });
-      } else {
-        setMessage({ type: "error", text: result.error || "Failed to update profile." });
+      try {
+        const result = await updateUserProfile(user.id, {
+          firstName,
+          lastName,
+          phone,
+        });
+
+        if (result.success && result.user) {
+          setCurrentUser(result.user);
+          setMessage({ type: "success", text: "Profile updated successfully!" });
+        } else {
+          setMessage({
+            type: "error",
+            text: result.error || "Failed to update profile.",
+          });
+          // React automatically reverts optimisticUser if setCurrentUser is not called
+        }
+      } catch {
+        setMessage({ type: "error", text: "An error occurred while saving." });
       }
-    } catch {
-      setMessage({ type: "error", text: "An error occurred while saving." });
-    } finally {
-      setLoading(false);
-    }
+    });
   };
 
   return (
@@ -48,13 +69,28 @@ export default function UserEditForm({ user }: { user: UserData }) {
       onSubmit={handleSubmit}
       className="space-y-6 max-w-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-8 shadow-sm"
     >
-      <div>
-        <h2 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-          Personal Information
-        </h2>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-          Update your profile details below.
-        </p>
+      {/* Live Profile Header reflecting optimisticUser */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-zinc-200 dark:border-zinc-800 gap-2">
+        <div>
+          <div className="flex items-center gap-2">
+            <h2 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+              {optimisticUser.firstName} {optimisticUser.lastName}
+            </h2>
+            {isPending && (
+              <span className="text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300 px-2 py-0.5 rounded-full animate-pulse">
+                Saving...
+              </span>
+            )}
+          </div>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+            {optimisticUser.email} {optimisticUser.phone ? `• ${optimisticUser.phone}` : ""}
+          </p>
+        </div>
+        <div>
+          <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-900">
+            {optimisticUser.role}
+          </span>
+        </div>
       </div>
 
       {message && (
@@ -126,24 +162,13 @@ export default function UserEditForm({ user }: { user: UserData }) {
         />
       </div>
 
-      <div className="space-y-2">
-        <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
-          Role
-        </label>
-        <div>
-          <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-900">
-            {user.role}
-          </span>
-        </div>
-      </div>
-
       <div className="pt-2">
         <button
           type="submit"
-          disabled={loading}
+          disabled={isPending}
           className="px-6 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors disabled:opacity-50 shadow-sm"
         >
-          {loading ? "Saving Changes..." : "Save Changes"}
+          {isPending ? "Saving Changes..." : "Save Changes"}
         </button>
       </div>
     </form>

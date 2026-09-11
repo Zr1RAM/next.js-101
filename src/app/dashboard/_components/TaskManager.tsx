@@ -1,6 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useOptimistic,
+  startTransition,
+} from "react";
 import { TaskCard, TaskItem } from "./TaskCard";
 import { TaskFilterBar, FilterStatus } from "./TaskFilterBar";
 import { TaskModal } from "./TaskModal";
@@ -81,19 +88,41 @@ export const TaskManager: React.FC = () => {
     };
   }, []);
 
-  // Compute status counts
+  // Optimistic updates via React 19 useOptimistic
+  const [optimisticTasks, setOptimisticTasks] = useOptimistic(
+    tasks,
+    (
+      currentTasks: TaskItem[],
+      action:
+        | { type: "TOGGLE_STATUS"; id: string; status: "PENDING" | "IN_PROGRESS" | "COMPLETED" }
+        | { type: "DELETE"; id: string }
+    ) => {
+      switch (action.type) {
+        case "TOGGLE_STATUS":
+          return currentTasks.map((t) =>
+            t.id === action.id ? { ...t, status: action.status } : t
+          );
+        case "DELETE":
+          return currentTasks.filter((t) => t.id !== action.id);
+        default:
+          return currentTasks;
+      }
+    }
+  );
+
+  // Compute status counts using optimisticTasks
   const counts = useMemo(() => {
     return {
-      all: tasks.length,
-      pending: tasks.filter((t) => t.status === "PENDING").length,
-      inProgress: tasks.filter((t) => t.status === "IN_PROGRESS").length,
-      completed: tasks.filter((t) => t.status === "COMPLETED").length,
+      all: optimisticTasks.length,
+      pending: optimisticTasks.filter((t) => t.status === "PENDING").length,
+      inProgress: optimisticTasks.filter((t) => t.status === "IN_PROGRESS").length,
+      completed: optimisticTasks.filter((t) => t.status === "COMPLETED").length,
     };
-  }, [tasks]);
+  }, [optimisticTasks]);
 
   // Filter tasks based on status and search query
   const filteredTasks = useMemo(() => {
-    return tasks.filter((task) => {
+    return optimisticTasks.filter((task) => {
       const matchesStatus =
         statusFilter === "ALL" ? true : task.status === statusFilter;
       const matchesSearch =
@@ -104,7 +133,7 @@ export const TaskManager: React.FC = () => {
               task.description.toLowerCase().includes(searchQuery.toLowerCase()));
       return matchesStatus && matchesSearch;
     });
-  }, [tasks, statusFilter, searchQuery]);
+  }, [optimisticTasks, statusFilter, searchQuery]);
 
   // Handle Create or Update task submission
   const handleSaveTask = async (data: {
@@ -151,47 +180,53 @@ export const TaskManager: React.FC = () => {
     }
   };
 
-  // Quick toggle status with optimistic UI update
+  // Quick toggle status with optimistic UI update via useOptimistic
   const handleToggleStatus = async (
     id: string,
     nextStatus: "PENDING" | "IN_PROGRESS" | "COMPLETED"
   ) => {
-    const previousTasks = [...tasks];
-    setTasks((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, status: nextStatus } : t))
-    );
+    startTransition(async () => {
+      // Instantly update UI optimistically
+      setOptimisticTasks({ type: "TOGGLE_STATUS", id, status: nextStatus });
 
-    try {
-      const res = await fetch(`/api/tasks/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: nextStatus }),
-      });
-      if (!res.ok) {
-        throw new Error("Failed to update status");
+      try {
+        const res = await fetch(`/api/tasks/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: nextStatus }),
+        });
+        if (!res.ok) {
+          throw new Error("Failed to update status");
+        }
+        const resJson = await res.json();
+        const updated = resJson?.data ?? resJson;
+        setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)));
+      } catch (err) {
+        console.error("Status toggle error:", err);
+        // Automatic rollback handled by useOptimistic if setTasks is not called
       }
-    } catch {
-      // Rollback on error
-      setTasks(previousTasks);
-    }
+    });
   };
 
-  // Delete task
+  // Delete task with optimistic UI update via useOptimistic
   const handleDeleteTask = async (id: string) => {
-    const previousTasks = [...tasks];
-    setTasks((prev) => prev.filter((t) => t.id !== id));
+    startTransition(async () => {
+      // Instantly remove task from UI optimistically
+      setOptimisticTasks({ type: "DELETE", id });
 
-    try {
-      const res = await fetch(`/api/tasks/${id}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) {
-        throw new Error("Failed to delete task");
+      try {
+        const res = await fetch(`/api/tasks/${id}`, {
+          method: "DELETE",
+        });
+        if (!res.ok) {
+          throw new Error("Failed to delete task");
+        }
+        setTasks((prev) => prev.filter((t) => t.id !== id));
+      } catch (err) {
+        console.error("Delete task error:", err);
+        // Automatic rollback handled by useOptimistic
       }
-    } catch {
-      // Rollback on error
-      setTasks(previousTasks);
-    }
+    });
   };
 
   const openCreateModal = () => {
