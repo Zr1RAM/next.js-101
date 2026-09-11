@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/session";
+import { getCurrentUser } from "@/lib/auth/session";
 import { TaskManager } from "./_components/TaskManager";
 import { CheckSquare, ShieldCheck } from "lucide-react";
 

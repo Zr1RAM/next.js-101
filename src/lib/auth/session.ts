@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { verifyJwt, UserSession } from "./auth";
-import { prisma } from "./prisma";
+import { prisma } from "../prisma";
 
 export async function getCurrentUser(): Promise<UserSession | null> {
   const cookieStore = await cookies();

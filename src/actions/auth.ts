@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
-import { hashPassword, verifyPassword, signJwt } from "@/lib/auth";
+import { hashPassword, verifyPassword, signJwt } from "@/lib/auth/auth";
 
 export interface AuthResponse {
   success: boolean;
