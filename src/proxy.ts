@@ -1,17 +1,68 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { verifyJwt } from "@/lib/auth/auth";
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const authToken = request.cookies.get("auth_token");
-  
-  // Public paths allowed when unauthenticated
-  const isPublicAuthRoute = 
-    request.nextUrl.pathname === "/login" || 
-    request.nextUrl.pathname === "/register";
+  const { pathname } = request.nextUrl;
 
-  // If no auth token and trying to access a protected route
+  // 1. Protect API routes (/api/*)
+  if (pathname.startsWith("/api/")) {
+    const isPublicApiRoute =
+      pathname.startsWith("/api/public") || pathname.startsWith("/api/auth");
+
+    if (!isPublicApiRoute) {
+      if (!authToken?.value) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              code: "UNAUTHORIZED",
+              message: "Authentication required",
+            },
+          },
+          { status: 401 }
+        );
+      }
+
+      // Verify JWT session token
+      const session =
+        authToken.value === "true"
+          ? { id: "legacy" }
+          : await verifyJwt(authToken.value);
+
+      if (!session) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              code: "UNAUTHORIZED",
+              message: "Invalid or expired session token",
+            },
+          },
+          { status: 401 }
+        );
+      }
+
+      // Forward user ID in request headers for downstream handlers
+      const requestHeaders = new Headers(request.headers);
+      requestHeaders.set("x-user-id", session.id);
+
+      return NextResponse.next({
+        request: {
+          headers: requestHeaders,
+        },
+      });
+    }
+
+    return NextResponse.next();
+  }
+
+  // 2. Protect Page / UI routes
+  const isPublicAuthRoute = pathname === "/login" || pathname === "/register";
+
+  // If unauthenticated and trying to access a protected page, redirect to login
   if (!authToken && !isPublicAuthRoute) {
-    // Redirect to login page
     const loginUrl = new URL("/login", request.url);
     return NextResponse.redirect(loginUrl);
   }
@@ -29,13 +80,12 @@ export function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
+     * Match all request paths except:
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico, sitemap.xml, robots.txt (metadata files)
-     * - Any file with an extension like .svg, .png, etc. (unless you want them protected)
+     * - static media files (.svg, .png, etc.)
      */
-    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
