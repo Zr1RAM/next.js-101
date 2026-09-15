@@ -64,7 +64,8 @@ export async function proxy(request: NextRequest) {
     pathname === "/register" ||
     pathname === "/" ||
     pathname === "/about" ||
-    pathname.startsWith("/blog");
+    pathname.startsWith("/blog") ||
+    pathname.startsWith("/marketing");
 
   // If unauthenticated and trying to access a protected page, redirect to login
   if (!authToken && !isPublicRoute) {
