@@ -58,17 +58,22 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2. Protect Page / UI routes
-  const isPublicAuthRoute = pathname === "/login" || pathname === "/register";
+  // 2. Protect Page / UI routes (dashboard, tasks, user profile, etc.)
+  const isPublicRoute =
+    pathname === "/login" ||
+    pathname === "/register" ||
+    pathname === "/" ||
+    pathname === "/about" ||
+    pathname.startsWith("/blog");
 
   // If unauthenticated and trying to access a protected page, redirect to login
-  if (!authToken && !isPublicAuthRoute) {
+  if (!authToken && !isPublicRoute) {
     const loginUrl = new URL("/login", request.url);
     return NextResponse.redirect(loginUrl);
   }
 
   // If already logged in and trying to access login or register page, redirect to home
-  if (authToken && isPublicAuthRoute) {
+  if (authToken && (pathname === "/login" || pathname === "/register")) {
     const homeUrl = new URL("/", request.url);
     return NextResponse.redirect(homeUrl);
   }
