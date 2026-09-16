@@ -9,7 +9,9 @@ export async function proxy(request: NextRequest) {
   // 1. Protect API routes (/api/*)
   if (pathname.startsWith("/api/")) {
     const isPublicApiRoute =
-      pathname.startsWith("/api/public") || pathname.startsWith("/api/auth");
+      pathname.startsWith("/api/public") ||
+      pathname.startsWith("/api/auth") ||
+      pathname.startsWith("/api/chat");
 
     if (!isPublicApiRoute) {
       if (!authToken?.value) {
@@ -65,7 +67,8 @@ export async function proxy(request: NextRequest) {
     pathname === "/" ||
     pathname === "/about" ||
     pathname.startsWith("/blog") ||
-    pathname.startsWith("/marketing");
+    pathname.startsWith("/marketing") ||
+    pathname.startsWith("/contact");
 
   // If unauthenticated and trying to access a protected page, redirect to login
   if (!authToken && !isPublicRoute) {
