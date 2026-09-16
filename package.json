@@ -12,15 +12,19 @@
     "db:migrate:dual": "node scripts/dual-migrate.mjs apply"
   },
   "dependencies": {
+    "@ai-sdk/google": "^3.0.122",
+    "@ai-sdk/react": "^3.0.286",
     "@prisma/client": "^6.19.3",
     "@tanstack/react-query": "^5.102.8",
+    "ai": "^6.0.283",
     "bcryptjs": "^3.0.3",
     "framer-motion": "^13.1.1",
     "jose": "^6.2.12",
     "lucide-react": "^1.38.0",
     "next": "16.3.3",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
