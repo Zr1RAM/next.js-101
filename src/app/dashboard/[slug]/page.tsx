@@ -12,6 +12,9 @@ interface DashBoardPageProps {
 
 export const dynamicParams = true; // if you set to false, any routes that are not mentioned in generateStaticParams won't be generated and will return 404
 
+// [FULL ROUTE CACHE]:
+// Pre-renders these static HTML and RSC payloads at build time into .next/server/app/
+// The server caches the entire rendered output so requests are served instantly with zero compute.
 export async function generateStaticParams() {
   return [
     { slug: "static-example-1" },
