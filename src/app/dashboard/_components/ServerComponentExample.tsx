@@ -3,13 +3,15 @@ import DogList from "./(Animals)/DogList";
 const ServerComponentExample = async () => {
     let res: Response;
     try {
-        // Next JS will cache data for 5 minutes by default. This is called static caching.
+        // [DATA CACHE & REQUEST MEMOIZATION]:
+        // 1. Request Memoization: If called multiple times in one render pass, Next.js deduplicates this fetch automatically.
+        // 2. Data Cache: Stores response on server across requests; revalidates every 5 min (ISR).
         res = await fetch("https://dogapi.dog/api/v2/breeds", {
             next: {
-                revalidate: 300
+                revalidate: 300 // [DATA CACHE]: Time-based revalidation (persists across user requests)
                 /** 
                  * by having it revalidate every 5 minutes.
-                 *  this component changed from being Server Side Rendering(SSR) to Incremental Static Regeneration(ISR)
+                 * this component changed from being Server Side Rendering(SSR) to Incremental Static Regeneration(ISR)
                 */
             }
         });
