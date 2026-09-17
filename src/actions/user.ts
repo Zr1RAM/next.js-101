@@ -74,6 +74,9 @@ export async function updateUserProfile(userId: string, input: UpdateProfileInpu
       },
     });
 
+    // [ON-DEMAND CACHE REVALIDATION]:
+    // Invalidate the Data Cache & Full Route Cache on the server for this user profile,
+    // and trigger an immediate Router Cache refresh on the client.
     revalidatePath(`/user/${userId}`);
     return { success: true, user: updatedUser };
   } catch (error) {
