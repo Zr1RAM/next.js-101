@@ -78,7 +78,7 @@ const chatTools = {
             Accept: "application/vnd.github.v3+json",
             "User-Agent": "NextJs-Architect-Agent",
           },
-          next: { revalidate: 3600 },
+          next: { revalidate: 3600 }, // [DATA CACHE]: Caches public GitHub repo responses across users for 1 hour
         });
 
         if (!res.ok) {
@@ -122,7 +122,7 @@ const chatTools = {
             Accept: "application/vnd.github.v3+json",
             "User-Agent": "NextJs-Architect-Agent",
           },
-          next: { revalidate: 600 },
+          next: { revalidate: 600 }, // [DATA CACHE]: Caches recent commits across users for 10 minutes
         });
 
         if (!res.ok) {
