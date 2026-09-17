@@ -3,6 +3,11 @@ import { getCurrentUser } from "@/lib/auth/session";
 import { getUserTasks, createNewTask } from "@/services/taskService";
 import { withErrorHandler, UnauthorizedError } from "@/lib/error-handling/errors";
 
+// [OPTING OUT OF CACHING FOR A WHOLE ROUTE]:
+// Forces this Route Handler to always execute dynamically on every request (disables Full Route Cache & static optimization).
+// Ensures users never receive stale task lists or cached mutations.
+export const dynamic = "force-dynamic";
+
 /**
  * GET /api/tasks
  * Fetch all tasks owned by the current authenticated user.

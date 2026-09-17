@@ -102,7 +102,7 @@ export default function ContactChatPage() {
 
   const fetchSuggestions = async () => {
     try {
-      setIsLoadingSuggestions(true);
+      // [DATA CACHE]: Opt-out of caching to guarantee fresh random prompts on every load/shuffle
       const res = await fetch("/api/chat", { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();

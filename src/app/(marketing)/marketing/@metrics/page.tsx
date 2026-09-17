@@ -1,3 +1,8 @@
+// [OPTING OUT OF CACHING FOR A WHOLE ROUTE / PARALLEL SLOT]:
+// Forces this specific parallel slot to calculate fresh on every request without being statically cached.
+// Even if the parent layout or sibling slots are static, @metrics stays 100% realtime.
+export const dynamic = "force-dynamic";
+
 export default function MetricsSlot() {
   const metrics = [
     { label: "Active Organizations", value: "48,200+", change: "+24% YoY", trend: "up" },
